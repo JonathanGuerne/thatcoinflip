@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
     <title>That Coin Flip Tho</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
@@ -27,8 +26,6 @@
             transform-style: preserve-3d;
             -webkit-transform-style: preserve-3d;
         }
-
-
 
         .outcome {
             height: min(70vw, 70vh);
@@ -93,41 +90,27 @@
             }
         }
     </style>
-
-
-
-
-
-
 </head>
 
 <body translate="no">
-    <div class="outcome">
-
-    </div>
+    <div class="outcome"></div>
 
     <script id="rendered-js">
-
 
         var coinFlipButton = document.getElementById("coinFlipButton");
         var outcome = document.querySelector(".outcome");
 
-        function getRandomNumber() {
-            return Math.floor(Math.random() * (2 - 1 + 1)) + 1;
-        }
-
         outcome.addEventListener("click", function () {
-            var randomNumber = getRandomNumber();
-            outcome.textContent = "";
+            // generate a fair random number between 0 and 1
+            var randomNumber = Math.random();
+
             outcome.classList.add("flip");
             outcome.classList.add("toss");
 
-
             setTimeout(function () {
-                if (randomNumber == 1) {
+                if (randomNumber < 0.5) {
                     outcome.style.backgroundImage = "url('./face.png')";
-
-                } else if (randomNumber == 2) {
+                } else if (randomNumber >= 0.5) {
                     outcome.style.backgroundImage = "url('./pile.png')";
                 }
             }, 1500);
@@ -138,7 +121,4 @@
             }, 3000);
         });
     </script>
-
-
-
 </body>
