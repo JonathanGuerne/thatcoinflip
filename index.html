@@ -93,12 +93,6 @@
             }
         }
     </style>
-
-
-
-
-
-
 </head>
 
 <body translate="no">
@@ -108,26 +102,20 @@
 
     <script id="rendered-js">
 
-
         var coinFlipButton = document.getElementById("coinFlipButton");
         var outcome = document.querySelector(".outcome");
 
-        function getRandomNumber() {
-            return Math.floor(Math.random() * (2 - 1 + 1)) + 1;
-        }
-
         outcome.addEventListener("click", function () {
-            var randomNumber = getRandomNumber();
-            outcome.textContent = "";
+            var randomNumber = Math.random();
+
             outcome.classList.add("flip");
             outcome.classList.add("toss");
 
-
             setTimeout(function () {
-                if (randomNumber == 1) {
+                if (randomNumber < 0.5) {
                     outcome.style.backgroundImage = "url('./face.png')";
 
-                } else if (randomNumber == 2) {
+                } else if (randomNumber >= 0.5) {
                     outcome.style.backgroundImage = "url('./pile.png')";
                 }
             }, 1500);
