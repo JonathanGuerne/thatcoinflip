@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <title>Thar Coin Flip Tho</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap");
+
+        * {
+            font-family: "Comfortaa", cursive;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1c1c1c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            transform: perspective(2000px);
+            -webkit-transform: perspective(2000px);
+            transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
+        }
+
+
+
+        .outcome {
+            height: min(70vw, 70vh);
+            width: min(70vw, 70vh);
+            background-image: url("./face.png");
+            background-size: cover;
+            margin-bottom: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            font-size: 32px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: bold;
+            line-height: 0.8;
+            color: #222;
+            box-shadow: 0 0 30px black;
+        }
+
+        .outcome.flip {
+            transition: 3s;
+            transform: rotate3d(1, 1, 0, 720deg);
+        }
+
+        .outcome.toss {
+            -webkit-animation: toss 3s forwards ease-in-out;
+            animation: toss 3s forwards ease-in-out;
+        }
+
+        .outcome:hover {
+            cursor: pointer;
+            box-shadow: 0 0 30px #222;
+        }
+
+        @-webkit-keyframes toss {
+            0% {
+                top: 0px;
+            }
+
+            50% {
+                top: -50vh;
+            }
+
+            100% {
+                top: 0px;
+            }
+        }
+
+        @keyframes toss {
+            0% {
+                top: 0px;
+            }
+
+            50% {
+                top: -50vh;
+            }
+
+            100% {
+                top: 0px;
+            }
+        }
+    </style>
+
+
+
+
+
+
+</head>
+
+<body translate="no">
+    <div class="outcome">
+
+    </div>
+
+    <script id="rendered-js">
+
+
+        var coinFlipButton = document.getElementById("coinFlipButton");
+        var outcome = document.querySelector(".outcome");
+
+        function getRandomNumber() {
+            return Math.floor(Math.random() * (2 - 1 + 1)) + 1;
+        }
+
+        outcome.addEventListener("click", function () {
+            var randomNumber = getRandomNumber();
+            outcome.textContent = "";
+            outcome.classList.add("flip");
+            outcome.classList.add("toss");
+
+
+            setTimeout(function () {
+                if (randomNumber == 1) {
+                    outcome.style.backgroundImage = "url('./face.png')";
+
+                } else if (randomNumber == 2) {
+                    outcome.style.backgroundImage = "url('./pile.png')";
+                }
+            }, 1500);
+
+            setTimeout(function () {
+                outcome.classList.remove("toss");
+                outcome.classList.remove("flip");
+            }, 3000);
+        });
+    </script>
+
+
+
+</body>
