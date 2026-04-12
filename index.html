@@ -4,16 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <title>That Coin Flip Tho</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+    <link rel="icon" href="pile.png">
 
     <style>
-        @import url("https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap");
-
-        * {
-            font-family: "Comfortaa", cursive;
-            box-sizing: border-box;
-        }
-
         body {
             background: #1c1c1c;
             display: flex;
@@ -27,7 +20,7 @@
             -webkit-transform-style: preserve-3d;
         }
 
-        .outcome {
+        .coin {
             height: min(70vw, 70vh);
             width: min(70vw, 70vh);
             background-image: url("./face.png");
@@ -38,28 +31,20 @@
             justify-content: center;
             align-items: center;
             position: relative;
-            font-size: 32px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            font-weight: bold;
-            line-height: 0.8;
-            color: #222;
-            box-shadow: 0 0 30px black;
         }
 
-        .outcome.flip {
+        .coin.flip {
             transition: 3s;
-            transform: rotate3d(1, 1, 0, 720deg);
+            transform: rotate3d(1, 0.5, 0, 720deg);
         }
 
-        .outcome.toss {
+        .coin.toss {
             -webkit-animation: toss 3s forwards ease-in-out;
             animation: toss 3s forwards ease-in-out;
         }
 
-        .outcome:hover {
+        .coin:hover {
             cursor: pointer;
-            box-shadow: 0 0 30px #222;
         }
 
         @-webkit-keyframes toss {
@@ -93,31 +78,30 @@
 </head>
 
 <body translate="no">
-    <div class="outcome"></div>
+    <div class="coin"></div>
 
     <script id="rendered-js">
-
         var coinFlipButton = document.getElementById("coinFlipButton");
-        var outcome = document.querySelector(".outcome");
+        var coin = document.querySelector(".coin");
 
-        outcome.addEventListener("click", function () {
+        coin.addEventListener("click", function () {
             // generate a fair random number between 0 and 1
             var randomNumber = Math.random();
 
-            outcome.classList.add("flip");
-            outcome.classList.add("toss");
+            coin.classList.add("flip");
+            coin.classList.add("toss");
 
             setTimeout(function () {
                 if (randomNumber < 0.5) {
-                    outcome.style.backgroundImage = "url('./face.png')";
+                    coin.style.backgroundImage = "url('./face.png')";
                 } else if (randomNumber >= 0.5) {
-                    outcome.style.backgroundImage = "url('./pile.png')";
+                    coin.style.backgroundImage = "url('./pile.png')";
                 }
             }, 1500);
 
             setTimeout(function () {
-                outcome.classList.remove("toss");
-                outcome.classList.remove("flip");
+                coin.classList.remove("toss");
+                coin.classList.remove("flip");
             }, 3000);
         });
     </script>
