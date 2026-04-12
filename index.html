@@ -14,94 +14,116 @@
             align-items: center;
             flex-direction: column;
             height: 100vh;
-            transform: perspective(2000px);
-            -webkit-transform: perspective(2000px);
-            transform-style: preserve-3d;
-            -webkit-transform-style: preserve-3d;
         }
 
-        .coin {
-            height: min(70vw, 70vh);
+        /* Perspective wrapper — gives the 3D scene its depth */
+        .coin-wrapper {
+            perspective: 600px;
             width: min(70vw, 70vh);
-            background-image: url("./face.png");
-            background-size: cover;
+            height: min(70vw, 70vh);
             margin-bottom: 50px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             position: relative;
-        }
-
-        .coin.flip {
-            transition: 3s;
-            transform: rotate3d(1, 0.5, 0, 720deg);
-        }
-
-        .coin.toss {
-            -webkit-animation: toss 3s forwards ease-in-out;
-            animation: toss 3s forwards ease-in-out;
-        }
-
-        .coin:hover {
             cursor: pointer;
         }
 
-        @-webkit-keyframes toss {
-            0% {
-                top: 0px;
-            }
+        /* The 3D card that rotates */
+        .coin {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+        }
 
-            50% {
-                top: -50vh;
-            }
+        /* Both faces share these rules */
+        .coin-face {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background-size: cover;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            /* Silver rim matching the coin's edge color */
+            box-shadow:
+                0 0 0 6px  #a0a0a0,
+                0 0 0 10px #707070,
+                0 0 0 12px #484848;
+        }
 
-            100% {
-                top: 0px;
-            }
+        /* Front face pushed slightly toward viewer */
+        .coin-front {
+            background-image: url("./face.png");
+            transform: translateZ(8px);
+        }
+
+        /* Back face pushed slightly away and pre-rotated to face backward */
+        .coin-back {
+            background-image: url("./pile.png");
+            transform: rotateY(180deg) translateZ(8px);
+        }
+
+        /* ---------- animations ---------- */
+
+        .coin-wrapper.toss {
+            animation: toss 3s forwards ease-in-out;
+        }
+
+        .coin.flip {
+            animation: spin 3s forwards ease-in-out;
         }
 
         @keyframes toss {
-            0% {
-                top: 0px;
-            }
+            0%   { top: 0; }
+            50%  { top: -50vh; }
+            100% { top: 0; }
+        }
 
-            50% {
-                top: -50vh;
-            }
-
-            100% {
-                top: 0px;
-            }
+        /* Diagonal axis matches original tumbling feel, extra rotations add
+           speed. Ends on a multiple of 360 so front face is visible. */
+        @keyframes spin {
+            0%   { transform: rotate3d(1, 0.5, 0, 0deg); }
+            100% { transform: rotate3d(1, 0.5, 0, 1440deg); }
         }
     </style>
 </head>
 
 <body translate="no">
-    <div class="coin"></div>
+    <div class="coin-wrapper">
+        <div class="coin">
+            <div class="coin-face coin-front"></div>
+            <div class="coin-face coin-back"></div>
+        </div>
+    </div>
 
     <script id="rendered-js">
-        var coin = document.querySelector(".coin");
+        var wrapper = document.querySelector(".coin-wrapper");
+        var coin    = document.querySelector(".coin");
+        var front   = document.querySelector(".coin-front");
+        var back    = document.querySelector(".coin-back");
 
-        coin.addEventListener("click", function () {
-            // generate a fair random number between 0 and 1
-            var randomNumber = Math.random();
+        wrapper.addEventListener("click", function () {
+            if (coin.classList.contains("flip")) return;
+
+            var isHeads = Math.random() < 0.5;
 
             coin.classList.add("flip");
-            coin.classList.add("toss");
+            wrapper.classList.add("toss");
 
+            // Swap images at the halfway point so the right face lands up
             setTimeout(function () {
-                if (randomNumber < 0.5) {
-                    coin.style.backgroundImage = "url('./face.png')";
-                } else if (randomNumber >= 0.5) {
-                    coin.style.backgroundImage = "url('./pile.png')";
+                if (isHeads) {
+                    front.style.backgroundImage = "url('./face.png')";
+                    back.style.backgroundImage  = "url('./pile.png')";
+                } else {
+                    front.style.backgroundImage = "url('./pile.png')";
+                    back.style.backgroundImage  = "url('./face.png')";
                 }
             }, 1500);
 
             setTimeout(function () {
-                coin.classList.remove("toss");
                 coin.classList.remove("flip");
+                wrapper.classList.remove("toss");
             }, 3000);
         });
     </script>
 </body>
+</html>
