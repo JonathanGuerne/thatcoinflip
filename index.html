@@ -14,56 +14,79 @@
             align-items: center;
             flex-direction: column;
             height: 100vh;
-            transform: perspective(2000px);
-            -webkit-transform: perspective(2000px);
-            transform-style: preserve-3d;
-            -webkit-transform-style: preserve-3d;
         }
 
-        .coin {
-            height: min(70vw, 70vh);
+        /* Perspective wrapper — gives the 3D scene its depth */
+        .coin-wrapper {
+            perspective: 1200px;
             width: min(70vw, 70vh);
-            background-image: url("./face.png");
-            background-size: cover;
+            height: min(70vw, 70vh);
             margin-bottom: 50px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             position: relative;
-        }
-
-        .coin.flip {
-            transition: 3s;
-            transform: rotate3d(1, 0.5, 0, 720deg);
-        }
-
-        .coin.toss {
-            -webkit-animation: toss 3s forwards ease-in-out;
-            animation: toss 3s forwards ease-in-out;
-        }
-
-        .coin:hover {
             cursor: pointer;
         }
 
-        @-webkit-keyframes toss {
-            0% {
-                top: 0px;
-            }
+        /* The 3D object that rotates */
+        .coin {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
 
-            50% {
-                top: -50vh;
-            }
+        /* Both flat faces */
+        .coin-face {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background-size: cover;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
 
-            100% {
-                top: 0px;
-            }
+        .coin-front {
+            background-image: url("./face.png");
+            transform: translateZ(var(--half-thickness));
+        }
+
+        .coin-back {
+            background-image: url("./pile.png");
+            transform: rotateY(180deg) translateZ(var(--half-thickness));
+        }
+
+        /* Edge segments — JS will generate these and set their transforms */
+        .coin-edge-segment {
+            position: absolute;
+            /* width is set by JS to cover the circumference slice */
+            height: calc(var(--thickness));
+            top: 50%;
+            left: 0;
+            transform-origin: center center;
+            backface-visibility: hidden;
+            /* Silver gradient across the thickness */
+            background: linear-gradient(to bottom,
+                    #888 0%,
+                    #b0b0b0 30%,
+                    #c8c8c8 50%,
+                    #b0b0b0 70%,
+                    #888 100%);
+        }
+
+        /* ---------- animations ---------- */
+
+        .coin-wrapper.toss {
+            animation: toss 3s forwards ease-in-out;
+        }
+
+        .coin.flip {
+            animation: spin 3s forwards ease-in-out;
+            transition: none;
         }
 
         @keyframes toss {
             0% {
-                top: 0px;
+                top: 0;
             }
 
             50% {
@@ -71,37 +94,127 @@
             }
 
             100% {
-                top: 0px;
+                top: 0;
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate3d(1, 0.5, 0, 0deg);
+            }
+
+            100% {
+                transform: rotate3d(1, 0.5, 0, 1440deg);
             }
         }
     </style>
 </head>
 
 <body translate="no">
-    <div class="coin"></div>
+    <div class="coin-wrapper">
+        <div class="coin">
+            <div class="coin-face coin-front"></div>
+            <div class="coin-face coin-back"></div>
+        </div>
+    </div>
 
     <script id="rendered-js">
+        var wrapper = document.querySelector(".coin-wrapper");
         var coin = document.querySelector(".coin");
+        var front = document.querySelector(".coin-front");
+        var back = document.querySelector(".coin-back");
 
-        coin.addEventListener("click", function () {
-            // generate a fair random number between 0 and 1
-            var randomNumber = Math.random();
+        // ── Edge geometry ─────────────────────────────────────────────────────
+        // We approximate the cylinder with N rectangular segments.
+        // Each segment is rotated around the Y axis by (i / N * 360°) and then
+        // pushed outward by the coin radius along Z so it sits on the rim.
+        var SEGMENTS = 64;
+        var THICKNESS = 20; // px — coin thickness in 3D space
+
+        // CSS custom properties for the face offsets
+        coin.style.setProperty("--half-thickness", (THICKNESS / 2) + "px");
+        coin.style.setProperty("--thickness", THICKNESS + "px");
+
+        // Read the rendered size (after layout)
+        function buildEdge() {
+            var size = coin.getBoundingClientRect().width;
+            var radius = size / 2;
+            // Arc length per segment — slightly oversized to avoid hairline gaps
+            var segWidth = (2 * Math.PI * radius) / SEGMENTS + 1;
+
+            for (var i = 0; i < SEGMENTS; i++) {
+                var angle = (i / SEGMENTS) * 360; // degrees
+
+                var seg = document.createElement("div");
+                seg.className = "coin-edge-segment";
+                seg.style.width = segWidth + "px";
+                seg.style.height = THICKNESS + "px";
+                // Anchor at coin centre
+                seg.style.top = "50%";
+                seg.style.left = "50%";
+                // 1. Centre the segment on the origin (X and Y)
+                // 2. Rotate around Y to the angular slot
+                // 3. Push outward to the rim — segment now faces inward correctly
+                seg.style.transform =
+                    "translate(-50%, -50%) " +
+                    "rotateX(90deg) " +
+                    "rotateY(" + angle + "deg) " +
+                    "translateZ(" + radius + "px)";
+
+                coin.appendChild(seg);
+            }
+        }
+
+        // Build after first paint so getBoundingClientRect is accurate
+        requestAnimationFrame(buildEdge);
+
+        // ── Mouse tilt ────────────────────────────────────────────────────────
+        var tiltX = 0, tiltY = 0;
+        var MAX_TILT = 180;
+
+        document.addEventListener("mousemove", function (e) {
+            if (coin.classList.contains("flip")) return;
+
+            var nx = (e.clientX / window.innerWidth - 0.5) * 2;
+            var ny = (e.clientY / window.innerHeight - 0.5) * 2;
+
+            tiltX = -ny * MAX_TILT;
+            tiltY = nx * MAX_TILT;
+
+            coin.style.transform = "rotateX(" + tiltX + "deg) rotateY(" + tiltY + "deg)";
+        });
+
+        document.addEventListener("mouseleave", function () {
+            if (coin.classList.contains("flip")) return;
+            coin.style.transform = "rotateX(0deg) rotateY(0deg)";
+        });
+
+        // ── Flip ──────────────────────────────────────────────────────────────
+        wrapper.addEventListener("click", function () {
+            if (coin.classList.contains("flip")) return;
+
+            var isHeads = Math.random() < 0.5;
 
             coin.classList.add("flip");
-            coin.classList.add("toss");
+            wrapper.classList.add("toss");
 
             setTimeout(function () {
-                if (randomNumber < 0.5) {
-                    coin.style.backgroundImage = "url('./face.png')";
-                } else if (randomNumber >= 0.5) {
-                    coin.style.backgroundImage = "url('./pile.png')";
+                if (isHeads) {
+                    front.style.backgroundImage = "url('./face.png')";
+                    back.style.backgroundImage = "url('./pile.png')";
+                } else {
+                    front.style.backgroundImage = "url('./pile.png')";
+                    back.style.backgroundImage = "url('./face.png')";
                 }
             }, 1500);
 
             setTimeout(function () {
-                coin.classList.remove("toss");
                 coin.classList.remove("flip");
+                wrapper.classList.remove("toss");
+                coin.style.transform = "rotateX(" + tiltX + "deg) rotateY(" + tiltY + "deg)";
             }, 3000);
         });
     </script>
 </body>
+
+</html>
